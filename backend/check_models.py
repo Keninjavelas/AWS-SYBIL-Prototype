@@ -3,7 +3,7 @@ import os
 
 # --- HARDCODE THE KEY JUST FOR THIS TEST ---
 # Go to your .env file, copy the text after GEMINI_API_KEY=, and paste it here.
-REAL_KEY = "AIzaSyBFpzwlsh4XgeWRxAdTmwIMktlHypK_Ooo"
+REAL_KEY = Your Key
 # -------------------------------------------
 
 if "PASTE" in REAL_KEY:
