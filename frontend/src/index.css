@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-sybil-bg text-sybil-text font-mono overflow-hidden;
+}

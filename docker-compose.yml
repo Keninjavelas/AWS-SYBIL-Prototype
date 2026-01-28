@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  # --- THE BRAIN (Python/FastAPI) ---
+  backend:
+    build: ./backend
+    container_name: sybil_core
+    ports:
+      - "8000:8000"
+    environment:
+      # Tells the backend to look for Ollama on the host machine
+      - OLLAMA_HOST=http://host.docker.internal:11434
+    # CRITICAL: This bridges the container to your laptop's localhost
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./backend/src:/app # Hot-reload: Edits on laptop reflect in container
+    networks:
+      - sybil_net
+
+  # --- THE FACE (React/Vite) ---
+  frontend:
+    build: ./frontend
+    container_name: sybil_interface
+    ports:
+      - "5173:5173"
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    volumes:
+      - ./frontend/src:/app/src # Hot-reload for frontend
+    depends_on:
+      - backend
+    networks:
+      - sybil_net
+
+networks:
+  sybil_net:
+    driver: bridge

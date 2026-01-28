@@ -1,0 +1,80 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: >
+  AWS - SYBIL Prototype
+  Free Tier Architecture: FastAPI on Lambda + RDS Postgres + S3 Frontend
+
+Globals:
+  Function:
+    Timeout: 30
+    MemorySize: 256
+    Environment:
+      Variables:
+        # We will inject these secrets later via AWS Console/Secrets Manager
+        DATABASE_URL: !Ref DatabaseUrl
+        GEMINI_API_KEY: "PLACEHOLDER" 
+        ENVIRONMENT: "PROTOTYPE"
+
+Resources:
+  # 1. THE API (Serverless Wrapper)
+  SybilApiFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: src/
+      Handler: main.handler
+      Runtime: python3.9
+      Architectures:
+        - x86_64
+      Events:
+        ApiEvent:
+          Type: Api
+          Properties:
+            Path: /{proxy+}
+            Method: any
+
+  # 2. THE DATABASE SECURITY GROUP (Firewall)
+  DbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow Lambda to talk to RDS
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 0.0.0.0/0 # WARN: In prod, lock this down. For prototype, it's easier.
+
+  # 3. THE DATABASE (Free Tier Eligible)
+  # Note: Creating RDS via CloudFormation can be tricky with free tier logic.
+  # Often simpler to create manually in Console and link it.
+  # But here is the definition if you want to try automated provisioning.
+  # SybilDatabase:
+  #   Type: AWS::RDS::DBInstance
+  #   Properties:
+  #     DBInstanceClass: db.t3.micro
+  #     AllocatedStorage: 20
+  #     Engine: postgres
+  #     MasterUsername: sybil_admin
+  #     MasterUserPassword: "ChangeMe123!" 
+  #     PubliclyAccessible: true 
+
+  # 4. FRONTEND BUCKET
+  FrontendBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub "sybil-prototype-frontend-${AWS::AccountId}"
+      WebsiteConfiguration:
+        IndexDocument: index.html
+
+Outputs:
+  ApiUrl:
+    Description: "API Gateway endpoint URL"
+    Value: !Sub "https://${ServerlessRestApi}.execute-api.${AWS::Region}.amazonaws.com/Prod/"
+  
+  FrontendBucketUrl:
+    Description: "S3 Website URL"
+    Value: !GetAtt FrontendBucket.WebsiteURL
+  
+  # Placeholder URL - you will get the real one after creating RDS manually or uncommenting above
+  DatabaseUrl:
+    Description: "Connection String"
+    Value: "postgresql://sybil_admin:PASSWORD@HOST:5432/sybil"

@@ -1,0 +1,12 @@
+fastapi==0.109.0
+uvicorn==0.27.0
+mangum==0.17.0
+sqlalchemy==2.0.25
+asyncpg==0.29.0
+pydantic==2.5.3
+pydantic-settings==2.1.0
+google-generativeai==0.3.2
+python-dotenv==1.0.1
+pypdf
+python-multipart
+aiosqlite
